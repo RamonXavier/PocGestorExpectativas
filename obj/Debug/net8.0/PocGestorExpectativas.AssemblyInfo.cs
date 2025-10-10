@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PocGestorExpectativas")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9664c4d10cb4e65c9cdd462dbe65905420bc8766")]
 [assembly: System.Reflection.AssemblyProductAttribute("PocGestorExpectativas")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PocGestorExpectativas")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
