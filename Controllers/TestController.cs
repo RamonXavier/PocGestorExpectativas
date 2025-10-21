@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using PocGestorExpectativas.Data;
 using PocGestorExpectativas.Models;
+using PocGestorExpectativas.Services;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
+using PocGestorExpectativas.Models.IA;
 
 namespace PocGestorExpectativas.Controllers;
 
@@ -13,10 +17,14 @@ public class TestController : ControllerBase
 {
     private readonly ILogger<TestController> _logger;
     private readonly RabbitMQSettings _rabbitMQSettings;
+    private readonly ExpectationAnalyzer _expectationAnalyzer;
+    private readonly AppDbContext _context;
 
-    public TestController(ILogger<TestController> logger, IOptions<RabbitMQSettings> rabbitMQSettings)
+    public TestController(ILogger<TestController> logger, IOptions<RabbitMQSettings> rabbitMQSettings, ExpectationAnalyzer expectationAnalyzer, AppDbContext context)
     {
         _logger = logger;
+        _expectationAnalyzer = expectationAnalyzer;
+        _context = context;
         _rabbitMQSettings = rabbitMQSettings.Value;
     }
 
@@ -136,5 +144,43 @@ public class TestController : ControllerBase
         }
 
         return Ok(new { message = "Dados de teste enviados", results });
+    }
+
+    [HttpPost("test-ai")]
+    public async Task<IActionResult> TestAi([FromBody] TestAiRequest request)
+    {
+        var payment = new Payment
+        {
+            Id = Guid.NewGuid(),
+            BeneficiaryName = request.BeneficiaryName,
+            Value = request.Value,
+            IdentificationField = Guid.NewGuid().ToString(),
+            Pago = true,
+            PaidAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
+
+        await _expectationAnalyzer.AnalyzeAndCreateExpectationAsync(payment);
+
+        return Ok(new
+        {
+            Message = "Análise de IA concluída",
+            PaymentId = payment.Id
+        });
+    }
+
+    [HttpGet("expectations")]
+    public async Task<IActionResult> GetExpectations()
+    {
+        var expectations = await _context.Expectations
+            .OrderByDescending(e => e.CreatedAt)
+            .Take(10)
+            .ToListAsync();
+
+        return Ok(expectations);
     }
 }

@@ -45,7 +45,7 @@ public class PaymentConsumer : BackgroundService
         }
     }
 
-    private async Task ConnectToRabbitMQ()
+    private Task ConnectToRabbitMQ()
     {
         try
         {
@@ -72,6 +72,8 @@ public class PaymentConsumer : BackgroundService
             _logger.LogError(ex, "Erro ao conectar com RabbitMQ");
             throw;
         }
+        
+        return Task.CompletedTask;
     }
 
     private async Task StartConsuming(CancellationToken stoppingToken)
@@ -138,6 +140,8 @@ public class PaymentConsumer : BackgroundService
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            Payment processedPayment;
+
             // Verificar se já existe um pagamento com a mesma linha digitável
             var existingPayment = await context.Payments
                 .FirstOrDefaultAsync(p => p.IdentificationField == paymentMessage.IdentificationField);
@@ -152,6 +156,7 @@ public class PaymentConsumer : BackgroundService
                 existingPayment.PaidAt = DateTime.UtcNow;
                 existingPayment.UpdatedAt = DateTime.UtcNow;
 
+                processedPayment = existingPayment;
                 _logger.LogInformation("Pagamento atualizado: {PaymentId}", existingPayment.Id);
             }
             else
@@ -171,6 +176,7 @@ public class PaymentConsumer : BackgroundService
                 };
 
                 context.Payments.Add(payment);
+                processedPayment = payment;
                 _logger.LogInformation("Novo pagamento criado: {PaymentId}", payment.Id);
             }
 
@@ -180,7 +186,7 @@ public class PaymentConsumer : BackgroundService
             var auditLog = new AuditLog
             {
                 Id = Guid.NewGuid(),
-                PaymentId = existingPayment?.Id,
+                PaymentId = processedPayment.Id,
                 Action = "payment_received",
                 Details = $"Pagamento processado via RabbitMQ: {paymentMessage.BeneficiaryName} - R$ {paymentMessage.Value:F2}",
                 Timestamp = DateTime.UtcNow
@@ -188,6 +194,10 @@ public class PaymentConsumer : BackgroundService
 
             context.AuditLogs.Add(auditLog);
             await context.SaveChangesAsync();
+
+            // Analisar expectativa com IA
+            var expectationAnalyzer = scope.ServiceProvider.GetRequiredService<ExpectationAnalyzer>();
+            await expectationAnalyzer.AnalyzeAndCreateExpectationAsync(processedPayment);
 
             _logger.LogInformation("Pagamento processado com sucesso: {Beneficiary}", paymentMessage.BeneficiaryName);
         }
