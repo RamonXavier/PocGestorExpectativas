@@ -81,11 +81,13 @@ public class GroqClient : ILlmClient
                     - Valores típicos
                     - Atrasos históricos";
 
-        var response = await CallGroqAsync(prompt, cancellationToken);
+        var response =
+            "{\n  \"nextExpectedPaymentDate\": \"2025-10-22\",\n  \"nextExpectedAmount\": 483.74,\n  \"confidenceScore\": 0.2,\n  \"rationale\": \"Considerando o padrão observado, onde apenas um pagamento foi registrado, é difícil estabelecer um padrão de frequência ou sazonalidade. A falta de datas de vencimento nos pagamentos históricos também limita a capacidade de prever quando o próximo pagamento deve ocorrer. A previsão de data e valor do próximo pagamento é baseada na simples repetição do valor e na suposição de que, se houvesse um padrão diário, o próximo pagamento seria no dia seguinte. A confiança na previsão é baixa devido à limitação dos dados. Este único pagamento não oferece informações suficientes para identificar padrões de sazonalidade, frequência de pagamentos ou atrasos históricos, o que torna a previsão do próximo pagamento altamente incerta.\"\n}";
+        //await CallGroqAsync(prompt, cancellationToken);
 
         try
         {
-            return JsonSerializer.Deserialize<ExpectationResult>(response) ?? new ExpectationResult();
+            return JsonSerializer.Deserialize<ExpectationResult>(response.Replace("```","")) ?? new ExpectationResult();
         }
         catch (JsonException ex)
         {

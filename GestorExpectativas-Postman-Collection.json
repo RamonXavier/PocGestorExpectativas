@@ -1,0 +1,681 @@
+{
+	"info": {
+		"_postman_id": "gestor-expectativas-poc",
+		"name": "🤖 Gestor de Expectativas - POC IA",
+		"description": "Collection completa para testar o sistema de IA que gera expectativas de pagamento baseado em histórico.\n\n## 🎯 **Funcionalidades:**\n- **RAG (Retrieval-Augmented Generation)**: Normaliza beneficiários\n- **Análise Inteligente**: IA analisa histórico e gera previsões\n- **Confidence Score**: Métrica de confiança das previsões\n- **Auditoria Completa**: Logs de todas as operações\n\n## 🚀 **Como usar:**\n1. Configure a variável `baseUrl` para sua API local\n2. Execute os testes na ordem sugerida\n3. Observe como a IA melhora com mais dados\n\n## 📊 **Fluxo Recomendado:**\n1. **Admin Stats** - Ver estado inicial\n2. **Test AI** - Testar IA com dados\n3. **View Results** - Ver expectativas geradas\n4. **CRUD Operations** - Gerenciar dados\n5. **RabbitMQ Tests** - Testar filas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🧪 1. TESTES DE IA",
+			"item": [
+				{
+					"name": "🤖 Teste IA - Primeiro CEMIG",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"beneficiaryName\": \"CEMIG DISTRIBUICAO S.A.\",\n  \"value\": 483.74\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test/test-ai",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"test-ai"
+							]
+						},
+						"description": "**🎯 Objetivo:** Testar IA com primeiro pagamento CEMIG\n\n**📊 Resultado Esperado:**\n- IA normaliza: \"CEMIG DISTRIBUICAO S.A.\" → \"CEMIG\"\n- Sem histórico → expectativa básica (rule-based)\n- Confidence Score baixo (~0.3)\n- Rationale explicando falta de histórico"
+					}
+				},
+				{
+					"name": "🤖 Teste IA - Segundo CEMIG (Variação)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"beneficiaryName\": \"Cemig Energia Ltda\",\n  \"value\": 485.20\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test/test-ai",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"test-ai"
+							]
+						},
+						"description": "**🎯 Objetivo:** Testar RAG - nomes diferentes, mesmo beneficiário\n\n**📊 Resultado Esperado:**\n- IA normaliza: \"Cemig Energia Ltda\" → \"CEMIG\" (mesmo grupo!)\n- Agora tem histórico (2 pagamentos)\n- IA analisa padrão → expectativa inteligente\n- Confidence Score médio (~0.7)\n- Rationale baseada em histórico"
+					}
+				},
+				{
+					"name": "🤖 Teste IA - Terceiro CEMIG",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"beneficiaryName\": \"CEMIG DISTRIBUICAO\",\n  \"value\": 487.50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test/test-ai",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"test-ai"
+							]
+						},
+						"description": "**🎯 Objetivo:** Histórico rico para análise avançada\n\n**📊 Resultado Esperado:**\n- IA normaliza: \"CEMIG DISTRIBUICAO\" → \"CEMIG\"\n- Histórico de 3 pagamentos\n- IA detecta padrão: valores crescentes, frequência\n- Confidence Score alto (~0.8-0.9)\n- Rationale detalhada com padrões identificados"
+					}
+				},
+				{
+					"name": "🤖 Teste IA - COPASA (Novo Beneficiário)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"beneficiaryName\": \"COPASA MG SANEAMENTO\",\n  \"value\": 89.90\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test/test-ai",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"test-ai"
+							]
+						},
+						"description": "**🎯 Objetivo:** Testar novo beneficiário\n\n**📊 Resultado Esperado:**\n- IA normaliza: \"COPASA MG SANEAMENTO\" → \"COPASA\"\n- Novo beneficiário → sem histórico\n- Expectativa básica (rule-based)\n- Confidence Score baixo (~0.3)"
+					}
+				},
+				{
+					"name": "🤖 Teste IA - SABESP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"beneficiaryName\": \"SABESP - COMPANHIA DE SANEAMENTO\",\n  \"value\": 156.75\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test/test-ai",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"test-ai"
+							]
+						},
+						"description": "**🎯 Objetivo:** Mais um beneficiário para diversificar dados\n\n**📊 Resultado Esperado:**\n- IA normaliza nome longo → \"SABESP\"\n- Primeiro pagamento SABESP\n- Expectativa básica"
+					}
+				},
+				{
+					"name": "📊 Ver Expectativas Geradas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/test/expectations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"expectations"
+							]
+						},
+						"description": "**🎯 Objetivo:** Visualizar todas as expectativas geradas pela IA\n\n**📊 O que observar:**\n- **CEMIG**: Confidence crescente (0.3 → 0.7 → 0.9)\n- **Rationale**: Explicações cada vez mais detalhadas\n- **AnalysisMethod**: \"rule-based\" → \"llm\"\n- **HistoryCount**: Aumentando com mais dados\n- **NextExpectedAmount**: Valores baseados em padrões"
+					}
+				}
+			],
+			"description": "🧪 **Testes focados na funcionalidade de IA**\n\nEsta seção testa o coração do sistema:\n- **RAG**: Como a IA normaliza beneficiários\n- **Análise de Histórico**: Como melhora com mais dados\n- **Confidence Score**: Métrica de qualidade\n- **Rationale**: Explicabilidade da IA"
+		},
+		{
+			"name": "💰 2. PAYMENTS (CRUD)",
+			"item": [
+				{
+					"name": "📋 Listar Todos os Pagamentos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments"
+							]
+						},
+						"description": "Lista todos os pagamentos do sistema, ordenados por data de criação (mais recentes primeiro)."
+					}
+				},
+				{
+					"name": "💳 Listar Pagamentos Pagos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments?pago=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments"
+							],
+							"query": [
+								{
+									"key": "pago",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Filtra apenas pagamentos que já foram processados (Pago = true)."
+					}
+				},
+				{
+					"name": "⏳ Listar Pagamentos Pendentes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments?pago=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments"
+							],
+							"query": [
+								{
+									"key": "pago",
+									"value": "false"
+								}
+							]
+						},
+						"description": "Filtra pagamentos ainda não processados (Pago = false)."
+					}
+				},
+				{
+					"name": "🔍 Buscar Pagamento por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments",
+								"{{paymentId}}"
+							]
+						},
+						"description": "Busca um pagamento específico pelo ID. Use um ID válido obtido da listagem."
+					}
+				},
+				{
+					"name": "➕ Criar Pagamento Manual",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identificationField\": \"12345678901234567890123456789012345678901234567890\",\n  \"value\": 299.99,\n  \"dueDate\": \"2025-11-15T00:00:00Z\",\n  \"beneficiaryName\": \"ENEL DISTRIBUICAO RJ\",\n  \"pago\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments"
+							]
+						},
+						"description": "Cria um novo pagamento manualmente. Útil para testar cenários específicos."
+					}
+				},
+				{
+					"name": "✏️ Atualizar Pagamento",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{paymentId}}\",\n  \"identificationField\": \"12345678901234567890123456789012345678901234567890\",\n  \"value\": 310.50,\n  \"dueDate\": \"2025-11-20T00:00:00Z\",\n  \"beneficiaryName\": \"ENEL DISTRIBUICAO RJ\",\n  \"normalizedBeneficiary\": \"ENEL\",\n  \"pago\": true,\n  \"paidAt\": \"2025-10-21T10:30:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments",
+								"{{paymentId}}"
+							]
+						},
+						"description": "Atualiza um pagamento existente. Substitua {{paymentId}} por um ID válido."
+					}
+				},
+				{
+					"name": "🗑️ Deletar Pagamento",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments",
+								"{{paymentId}}"
+							]
+						},
+						"description": "Remove um pagamento do sistema. Use com cuidado!"
+					}
+				}
+			],
+			"description": "💰 **Gerenciamento de Pagamentos**\n\nCRUD completo para pagamentos:\n- **Create**: Criar pagamentos manuais\n- **Read**: Listar e buscar pagamentos\n- **Update**: Atualizar informações\n- **Delete**: Remover pagamentos\n\n**Filtros disponíveis:**\n- `?pago=true/false` - Filtrar por status"
+		},
+		{
+			"name": "🔮 3. EXPECTATIONS (CRUD)",
+			"item": [
+				{
+					"name": "📋 Listar Todas as Expectativas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations"
+							]
+						},
+						"description": "Lista todas as expectativas geradas pela IA, ordenadas por data de criação."
+					}
+				},
+				{
+					"name": "🔍 Filtrar por Beneficiário",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations?beneficiary=CEMIG",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations"
+							],
+							"query": [
+								{
+									"key": "beneficiary",
+									"value": "CEMIG"
+								}
+							]
+						},
+						"description": "Filtra expectativas por beneficiário específico. Útil para analisar padrões de um pagador."
+					}
+				},
+				{
+					"name": "🔍 Buscar Expectativa por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations/{{expectationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations",
+								"{{expectationId}}"
+							]
+						},
+						"description": "Busca uma expectativa específica pelo ID."
+					}
+				},
+				{
+					"name": "➕ Criar Expectativa Manual",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"normalizedBeneficiary\": \"ENEL\",\n  \"nextExpectedPaymentDate\": \"2025-12-15T00:00:00Z\",\n  \"nextExpectedAmount\": 315.75,\n  \"confidenceScore\": 0.85,\n  \"rationale\": \"Baseado em padrão mensal consistente dos últimos 6 meses\",\n  \"analysisMethod\": \"manual\",\n  \"historyCount\": 6\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations"
+							]
+						},
+						"description": "Cria uma expectativa manual. Útil para correções ou testes específicos."
+					}
+				},
+				{
+					"name": "✏️ Atualizar Expectativa",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{expectationId}}\",\n  \"normalizedBeneficiary\": \"ENEL\",\n  \"nextExpectedPaymentDate\": \"2025-12-20T00:00:00Z\",\n  \"nextExpectedAmount\": 320.00,\n  \"confidenceScore\": 0.90,\n  \"rationale\": \"Expectativa ajustada com base em feedback humano\",\n  \"analysisMethod\": \"human-adjusted\",\n  \"historyCount\": 6\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations/{{expectationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations",
+								"{{expectationId}}"
+							]
+						},
+						"description": "Atualiza uma expectativa existente. Útil para correções baseadas em feedback."
+					}
+				},
+				{
+					"name": "🗑️ Deletar Expectativa",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations/{{expectationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations",
+								"{{expectationId}}"
+							]
+						},
+						"description": "Remove uma expectativa do sistema."
+					}
+				},
+				{
+					"name": "📊 Estatísticas das Expectativas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/expectations/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expectations",
+								"stats"
+							]
+						},
+						"description": "**📊 Métricas importantes:**\n- **TotalExpectations**: Quantas expectativas foram geradas\n- **AverageConfidence**: Confiança média da IA\n- **UniqueBeneficiaries**: Quantos beneficiários únicos\n\n**💡 Use para:**\n- Monitorar qualidade da IA\n- Identificar beneficiários com mais dados\n- Acompanhar evolução do sistema"
+					}
+				}
+			],
+			"description": "🔮 **Gerenciamento de Expectativas**\n\nCRUD para expectativas geradas pela IA:\n- **Visualizar**: Todas as previsões\n- **Filtrar**: Por beneficiário específico\n- **Editar**: Correções manuais\n- **Estatísticas**: Métricas de qualidade\n\n**Campos importantes:**\n- `confidenceScore`: Confiança da IA (0-1)\n- `rationale`: Explicação da previsão\n- `analysisMethod`: Como foi gerada"
+		},
+		{
+			"name": "🐰 4. RABBITMQ TESTS",
+			"item": [
+				{
+					"name": "📤 Enviar Pagamento Individual",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identificationField\": \"83640000004583740138005551519449511208143752973\",\n  \"value\": 483.74,\n  \"dueDate\": \"2025-11-10T00:00:00Z\",\n  \"beneficiaryName\": \"CEMIG DISTRIBUICAO S.A.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test/send-payment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"send-payment"
+							]
+						},
+						"description": "**🎯 Objetivo:** Testar fluxo completo via RabbitMQ\n\n**📋 Fluxo:**\n1. Envia mensagem para fila RabbitMQ\n2. Worker consome automaticamente\n3. Cria/atualiza Payment no banco\n4. Marca como Pago = true\n5. Dispara análise de IA\n6. Gera Expectation\n7. Registra AuditLog\n\n**⏱️ Aguarde:** 2-5 segundos para processamento completo"
+					}
+				},
+				{
+					"name": "📦 Criar Dados de Teste (Batch)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/test/create-sample-data",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"create-sample-data"
+							]
+						},
+						"description": "**🎯 Objetivo:** Criar conjunto de dados para testes\n\n**📦 Dados criados:**\n- **COPASA MG**: R$ 89,90\n- **CEMIG DISTRIBUICAO**: R$ 156,75\n- **SABESP**: R$ 45,30\n\n**🔄 Processamento:**\n- Todos enviados via RabbitMQ\n- Worker processa automaticamente\n- IA analisa cada um\n- Expectativas geradas\n\n**💡 Use para:** Testar sistema com dados variados"
+					}
+				}
+			],
+			"description": "🐰 **Testes RabbitMQ**\n\nTesta o fluxo completo de mensageria:\n1. **Envio**: Mensagem para fila\n2. **Consumo**: Worker processa automaticamente\n3. **IA**: Análise e geração de expectativas\n4. **Auditoria**: Logs completos\n\n**⚡ Fluxo Assíncrono:**\nAPI → RabbitMQ → Worker → IA → Banco"
+		},
+		{
+			"name": "👨‍💼 5. ADMIN & MONITORING",
+			"item": [
+				{
+					"name": "📊 Estatísticas Gerais do Sistema",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"stats"
+							]
+						},
+						"description": "**📊 Dashboard Completo:**\n\n**💰 Payments:**\n- Total, Pagos, Pendentes\n- Valor médio dos pagamentos\n- Pagamentos recentes (7 dias)\n\n**🔮 Expectations:**\n- Total de expectativas\n- Confiança média da IA\n\n**📝 Audit:**\n- Total de logs de auditoria\n\n**🖥️ System:**\n- Status da conexão com banco\n- Timestamp atual\n\n**💡 Use para:** Monitoramento geral do sistema"
+					}
+				},
+				{
+					"name": "🐰 Status da Fila RabbitMQ",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/queue-status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"queue-status"
+							]
+						},
+						"description": "**🔍 Monitoramento RabbitMQ:**\n- Status da conexão\n- Nome da fila configurada\n- Mensagens pendentes na fila\n- Status do consumer\n- Última mensagem processada\n\n**⚠️ Nota:** Atualmente retorna dados simulados. Na implementação completa, conectará com RabbitMQ real."
+					}
+				},
+				{
+					"name": "📋 Logs de Auditoria",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/audit-logs?limit=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"audit-logs"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "**📝 Auditoria Completa:**\n\n**Tipos de Ações:**\n- `payment_received`: Pagamento processado via RabbitMQ\n- `payment_created`: Pagamento criado manualmente\n- `expectation_generated`: IA gerou expectativa\n- `expectation_created`: Expectativa criada manualmente\n\n**📊 Informações:**\n- PaymentId e ExpectationId relacionados\n- Detalhes da operação\n- Timestamp preciso\n\n**🔍 Use para:** Rastrear todas as operações do sistema"
+					}
+				},
+				{
+					"name": "📈 Estatísticas por Beneficiário",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/beneficiary-stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"beneficiary-stats"
+							]
+						},
+						"description": "**📊 Análise por Beneficiário:**\n\n**Métricas por Beneficiário:**\n- **PaymentCount**: Quantos pagamentos\n- **TotalValue**: Valor total pago\n- **AverageValue**: Valor médio\n- **LastPayment**: Último pagamento\n- **HasExpectation**: Se tem expectativa gerada\n\n**📈 Ordenação:** Por valor total (maior primeiro)\n\n**💡 Use para:**\n- Identificar maiores pagadores\n- Ver quais têm expectativas\n- Analisar padrões de pagamento"
+					}
+				}
+			],
+			"description": "👨‍💼 **Administração e Monitoramento**\n\nDashboard completo para acompanhar:\n- **Performance**: Estatísticas gerais\n- **Filas**: Status RabbitMQ\n- **Auditoria**: Logs detalhados\n- **Beneficiários**: Análise por pagador\n\n**🎯 Ideal para:** Monitoramento operacional"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:7000",
+			"type": "string",
+			"description": "URL base da API. Ajuste para sua porta local (ex: https://localhost:7000 ou http://localhost:5000)"
+		},
+		{
+			"key": "paymentId",
+			"value": "",
+			"type": "string",
+			"description": "ID de um pagamento para testes de CRUD. Obtenha da listagem de pagamentos."
+		},
+		{
+			"key": "expectationId",
+			"value": "",
+			"type": "string",
+			"description": "ID de uma expectativa para testes de CRUD. Obtenha da listagem de expectativas."
+		}
+	]
+}

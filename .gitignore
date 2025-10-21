@@ -6,3 +6,5 @@
 /obj/Debug/*
 /obj/*
 .vs/*
+bin/Release/net8.0/appsettings.json
+bin/Release/net8.0/*
